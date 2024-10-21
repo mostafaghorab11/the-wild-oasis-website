@@ -1,6 +1,59 @@
 'use server';
 
-const { signIn, signOut } = require('./auth');
+import { revalidatePath } from 'next/cache';
+import { getBookings } from './data-service';
+import { supabase } from './supabase';
+
+const { signIn, signOut, auth } = require('./auth');
+
+export async function updateGuestAction(formData) {
+  const session = await auth();
+  if (!session) throw new Error('You are not logged in, please log in first');
+
+  const nationalID = formData.get('nationalID');
+  const [nationality, countryFlag] = formData.get('nationality').split('%');
+
+  if (!/^[a-zA-Z0-9]{6,12}$/.test(nationalID))
+    throw new Error('Please provide a valid national ID');
+
+  const { data, error } = await supabase
+    .from('guests')
+    .update({
+      nationalID,
+      nationality,
+      countryFlag,
+    })
+    .eq('id', session?.user?.guestId);
+
+  if (error) {
+    console.log(error);
+    throw new Error('Guest could not be updated');
+  }
+
+  revalidatePath('/account/profile');
+}
+
+export async function deleteReservationAction(bookingId) {
+  const session = await auth();
+  if (!session) throw new Error('You are not logged in, please log in first');
+
+  const guestBookings = await getBookings(session.user.guestId);
+  const guestBookingsIds = guestBookings.map((booking) => booking.id);
+  if (!guestBookingsIds.includes(bookingId))
+    throw new Error('You are not allowed to delete that booking');
+
+  const { error } = await supabase
+    .from('bookings')
+    .delete()
+    .eq('id', bookingId);
+
+  if (error) {
+    console.error(error);
+    throw new Error('Booking could not be deleted');
+  }
+
+  revalidatePath('/account/reservations');
+}
 
 export async function signInAction() {
   await signIn('google', { redirectTo: '/account' });
