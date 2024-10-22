@@ -1,6 +1,6 @@
 'use client';
 import { useOptimistic } from 'react';
-import { deleteReservationAction } from '../_lib/actions';
+import { deleteBookingAction } from '../_lib/actions';
 import ReservationCard from './ReservationCard';
 
 function ReservationsList({ bookings }) {
@@ -13,7 +13,7 @@ function ReservationsList({ bookings }) {
 
   async function handleDelete(bookingId) {
     optimisticDelete(bookingId);
-    await deleteReservationAction(bookingId);
+    await deleteBookingAction(bookingId);
   }
   return (
     <ul className="space-y-6">

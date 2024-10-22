@@ -7,6 +7,32 @@ import { supabase } from './supabase';
 
 const { signIn, signOut, auth } = require('./auth');
 
+export async function createBookingAction(bookingData, formData) {
+  const session = await auth();
+  if (!session) throw new Error('You are not logged in, please log in first');
+
+  const newBooking = {
+    ...bookingData,
+    guestId: session.user.guestId,
+    observations: formData.get('observations'),
+    numGuests: parseInt(formData.get('numGuests')),
+    extrasPrice: 0,
+    totalPrice: bookingData.cabinPrice,
+    isPaid: false,
+    hasBreakfast: false,
+    status: 'unconfirmed',
+  };
+
+  const { error } = await supabase.from('bookings').insert([newBooking]);
+
+  if (error) {
+    throw new Error('Booking could not be created');
+  }
+
+  revalidatePath('/account/reservations');
+  redirect('/account/reservations');
+}
+
 export async function updateGuestAction(formData) {
   const session = await auth();
   if (!session) throw new Error('You are not logged in, please log in first');
@@ -34,7 +60,7 @@ export async function updateGuestAction(formData) {
   revalidatePath('/account/profile');
 }
 
-export async function deleteReservationAction(bookingId) {
+export async function deleteBookingAction(bookingId) {
   // for testing
   // await new Promise((res) => setTimeout(res, 2000));
   const session = await auth();
@@ -58,7 +84,7 @@ export async function deleteReservationAction(bookingId) {
   revalidatePath('/account/reservations');
 }
 
-export async function updateReservationAction(formData) {
+export async function updateBookingAction(formData) {
   const bookingId = +formData.get('bookingId');
   const session = await auth();
   if (!session) throw new Error('You are not logged in, please log in first');
