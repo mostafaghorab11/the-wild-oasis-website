@@ -35,6 +35,8 @@ export async function updateGuestAction(formData) {
 }
 
 export async function deleteReservationAction(bookingId) {
+  // for testing
+  // await new Promise((res) => setTimeout(res, 2000));
   const session = await auth();
   if (!session) throw new Error('You are not logged in, please log in first');
 
