@@ -36,8 +36,6 @@ function DateSelector({ cabin, bookedDates, settings }) {
 
   const finalYear = new Date().getFullYear() + 5;
 
-  console.log(bookedDates);
-
   return (
     <div className="flex flex-col justify-between mb-10">
       <DayPicker

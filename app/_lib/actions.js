@@ -53,7 +53,6 @@ export async function updateGuestAction(formData) {
     .eq('id', session?.user?.guestId);
 
   if (error) {
-    console.log(error);
     throw new Error('Guest could not be updated');
   }
 
